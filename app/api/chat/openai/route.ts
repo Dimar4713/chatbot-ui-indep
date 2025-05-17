@@ -36,6 +36,21 @@ export async function POST(request: Request) {
       stream: true
     })
 
+    const response_new = await openai.chat.completions.create({
+      model: chatSettings.model as ChatCompletionCreateParamsBase["model"],
+      messages: messages as ChatCompletionCreateParamsBase["messages"],
+      temperature: chatSettings.temperature,
+      // Подставляем правильный параметр в зависимости от модели
+      ...(chatSettings.model.startsWith("o1") ||
+      chatSettings.model.startsWith("o3") ||
+      chatSettings.model.startsWith("o4") ||
+      chatSettings.model === "gpt-4-vision-preview" ||
+      chatSettings.model === "gpt-4o"
+        ? { max_completion_tokens: chatSettings.contextLength ?? 65536 }
+        : { max_tokens: chatSettings.contextLength ?? 4096 }),
+      stream: true
+    })
+
     const stream = OpenAIStream(response)
 
     return new StreamingTextResponse(stream)

@@ -1,7 +1,10 @@
 import { supabase } from "@/lib/supabase/browser-client"
 import { TablesInsert, TablesUpdate } from "@/supabase/types"
 
-export const getHomeWorkspaceByUserId = async (userId: string) => {
+// Получение домашнего рабочего пространства пользователя
+export const getHomeWorkspaceByUserId = async (
+  userId: string
+): Promise<string> => {
   const { data: homeWorkspace, error } = await supabase
     .from("workspaces")
     .select("*")
@@ -9,44 +12,63 @@ export const getHomeWorkspaceByUserId = async (userId: string) => {
     .eq("is_home", true)
     .single()
 
-  if (!homeWorkspace) {
+  if (error) {
     throw new Error(error.message)
+  }
+
+  if (!homeWorkspace) {
+    throw new Error("Домашнее рабочее пространство не найдено.")
   }
 
   return homeWorkspace.id
 }
 
-export const getWorkspaceById = async (workspaceId: string) => {
+// Получение рабочего пространства по ID
+export const getWorkspaceById = async (
+  workspaceId: string
+): Promise<TablesInsert<"workspaces">> => {
   const { data: workspace, error } = await supabase
     .from("workspaces")
     .select("*")
     .eq("id", workspaceId)
     .single()
 
-  if (!workspace) {
+  if (error) {
     throw new Error(error.message)
+  }
+
+  if (!workspace) {
+    throw new Error("Рабочее пространство не найдено.")
   }
 
   return workspace
 }
 
-export const getWorkspacesByUserId = async (userId: string) => {
+// Получение всех рабочих пространств пользователя
+export const getWorkspacesByUserId = async (
+  userId: string
+): Promise<TablesInsert<"workspaces">[]> => {
   const { data: workspaces, error } = await supabase
     .from("workspaces")
     .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
 
-  if (!workspaces) {
+  if (error) {
     throw new Error(error.message)
+  }
+
+  if (!workspaces) {
+    throw new Error("Рабочие пространства не найдены.")
   }
 
   return workspaces
 }
 
+// Создание нового рабочего пространства
 export const createWorkspace = async (
   workspace: TablesInsert<"workspaces">
-) => {
+): Promise<TablesInsert<"workspaces">> => {
   const { data: createdWorkspace, error } = await supabase
     .from("workspaces")
     .insert([workspace])
@@ -57,13 +79,18 @@ export const createWorkspace = async (
     throw new Error(error.message)
   }
 
+  if (!createdWorkspace) {
+    throw new Error("Не удалось создать рабочее пространство.")
+  }
+
   return createdWorkspace
 }
 
+// Обновление рабочего пространства
 export const updateWorkspace = async (
   workspaceId: string,
   workspace: TablesUpdate<"workspaces">
-) => {
+): Promise<TablesInsert<"workspaces">> => {
   const { data: updatedWorkspace, error } = await supabase
     .from("workspaces")
     .update(workspace)
@@ -75,10 +102,17 @@ export const updateWorkspace = async (
     throw new Error(error.message)
   }
 
+  if (!updatedWorkspace) {
+    throw new Error("Не удалось обновить рабочее пространство.")
+  }
+
   return updatedWorkspace
 }
 
-export const deleteWorkspace = async (workspaceId: string) => {
+// Удаление рабочего пространства
+export const deleteWorkspace = async (
+  workspaceId: string
+): Promise<{ success: boolean; id: string }> => {
   const { error } = await supabase
     .from("workspaces")
     .delete()
@@ -88,5 +122,5 @@ export const deleteWorkspace = async (workspaceId: string) => {
     throw new Error(error.message)
   }
 
-  return true
+  return { success: true, id: workspaceId }
 }
